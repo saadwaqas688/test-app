@@ -2,6 +2,8 @@ process.on('unhandledRejection', e => console.error('unhandledRejection:', (e&&e
 process.on('uncaughtException', e => console.error('uncaughtException:', (e&&e.message)||e));
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
+const path = require('path');
 
 const {
   SUPABASE_URL,
@@ -167,72 +169,6 @@ app.get('/api/shots', adminAuth, async (req, res) => {
   } catch (e) { res.json({ files: [], error: String(e.message || e) }); }
 });
 
-app.get('/', adminAuth, (_req, res) => res.type('html').send(DASH_HTML));
+app.get('/', adminAuth, (_req, res) => res.type('html').send(fs.readFileSync(path.join(__dirname,'dashboard.html'),'utf8')));
 
 app.listen(PORT, () => console.log(`test-app-backend listening on :${PORT}`));
-
-// ---------- dashboard HTML ----------
-const DASH_HTML = `<!doctype html><html><head><meta charset="utf-8"><title>test-app dashboard</title>
-<style>
-body{font-family:Segoe UI,system-ui,sans-serif;margin:0;background:#f4f6fa;color:#1f2733}
-header{background:#13294b;color:#fff;padding:14px 22px;font-weight:700}
-main{padding:20px;max-width:1100px;margin:0 auto}
-.card{background:#fff;border:1px solid #e6eaf0;border-radius:12px;padding:16px;margin-bottom:16px}
-h2{font-size:15px;margin:0 0 12px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{text-align:left;padding:8px;border-bottom:1px solid #eef1f6}
-th{color:#7b8794;font-weight:600;font-size:11px;text-transform:uppercase}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#9aa3c4;margin-right:6px}
-.on{background:#27c08a}
-.muted{color:#7b8794}
-button{background:#19b8a6;color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer}
-</style></head><body>
-<header>test-app — monitoring dashboard</header>
-<main>
-  <div class="card"><button onclick="load()">Refresh</button> <span id="msg" class="muted"></span></div>
-  <div class="card"><h2>Devices</h2><div id="devices">Loading…</div></div>
-  <div class="card"><h2>Time tracked (recent days)</h2><div id="daily"></div></div>
-  <div class="card"><h2>Top applications</h2><div id="apps"></div></div>
-  <div class="card"><h2>Recent visited sites</h2><div id="visits"></div></div>
-  <div class="card"><h2>Screenshots (today)</h2>
-    <div style="margin-bottom:10px"><select id="shotDevice"></select> <button onclick="loadShots()">Load screenshots</button> <span id="shotMsg" class="muted"></span></div>
-    <div id="shots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px"></div>
-  </div>
-</main>
-<script>
-function fmt(s){s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+'h '+m+'m':(m?m+'m':s+'s');}
-function tbl(rows,cols){if(!rows.length)return '<div class="muted">No data.</div>';
-  let h='<table><tr>'+cols.map(c=>'<th>'+c[0]+'</th>').join('')+'</tr>';
-  for(const r of rows){h+='<tr>'+cols.map(c=>'<td>'+(c[1](r)??'')+'</td>').join('')+'</tr>';}
-  return h+'</table>';}
-async function load(){
-  document.getElementById('msg').textContent='Loading…';
-  const r=await fetch('/api/data'); const d=await r.json();
-  if(d.error){document.getElementById('msg').textContent='Error: '+JSON.stringify(d.error);}
-  else document.getElementById('msg').textContent='Updated '+new Date().toLocaleString();
-  document.getElementById('devices').innerHTML=tbl(d.devices||[],[
-    ['Status',x=>'<span class="dot '+(x.running?'on':'')+'"></span>'+(x.running?'Running':'Stopped')],
-    ['Device',x=>x.label||x.id],['Today',x=>fmt(x.today_seconds)],
-    ['Last seen',x=>x.last_seen?new Date(x.last_seen).toLocaleString():'']]);
-  document.getElementById('daily').innerHTML=tbl((d.daily||[]).slice(0,60),[
-    ['Device',x=>x.device_id],['Day',x=>x.day],['Tracked',x=>fmt(x.seconds)],
-    ['Activity',x=>x.active_pct+'%'],['Deleted',x=>x.deleted]]);
-  document.getElementById('apps').innerHTML=tbl((d.apps||[]).slice(0,40),[
-    ['Device',x=>x.device_id],['App',x=>x.app],['Time',x=>fmt(x.seconds)]]);
-  const sd=document.getElementById('shotDevice'); const cur=sd.value;
-  sd.innerHTML=(d.devices||[]).map(x=>'<option value="'+x.id+'">'+(x.label||x.id)+'</option>').join('');
-  if(cur)sd.value=cur;
-  document.getElementById('visits').innerHTML=tbl((d.visits||[]).slice(0,200),[
-    ['When',x=>new Date(x.ts).toLocaleString()],['Device',x=>x.device_id],
-    ['Site',x=>x.domain],['Title',x=>(x.title||'').slice(0,60)],['Browser',x=>x.browser]]);
-}
-async function loadShots(){
-  const dev=document.getElementById('shotDevice').value; const box=document.getElementById('shots'); const m=document.getElementById('shotMsg');
-  if(!dev){m.textContent='No device selected';return;} m.textContent='Loading…'; box.innerHTML='';
-  const r=await fetch('/api/shots?device='+encodeURIComponent(dev)); const d=await r.json();
-  if(d.error){m.textContent='Error: '+d.error;return;}
-  m.textContent=(d.files&&d.files.length)?('Day '+(d.day||'')+' — '+d.files.length+' shots'):'No screenshots yet';
-  box.innerHTML=(d.files||[]).map(f=>'<a href="'+f.url+'" target="_blank"><img src="'+f.url+'" style="width:100%;border:1px solid #e6eaf0;border-radius:8px" title="'+f.name+'"></a>').join('');
-}
-load();
-</script></body></html>`;
