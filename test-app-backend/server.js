@@ -1,3 +1,5 @@
+process.on('unhandledRejection', e => console.error('unhandledRejection:', (e&&e.message)||e));
+process.on('uncaughtException', e => console.error('uncaughtException:', (e&&e.message)||e));
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -18,6 +20,25 @@ if (!SUPABASE_URL || !SUPABASE_SECRET_KEY) {
 const supa = createClient(SUPABASE_URL || 'http://localhost', SUPABASE_SECRET_KEY || 'x', {
   auth: { persistSession: false }
 });
+
+const BUCKET = 'screenshots';
+async function ensureBucket(){
+  try{ const { data } = await supa.storage.getBucket(BUCKET); if(data) return; }catch(e){}
+  try{ await supa.storage.createBucket(BUCKET, { public:false }); console.log('created storage bucket', BUCKET); }catch(e){ console.warn('bucket', e.message||e); }
+}
+ensureBucket();
+
+function dayStr(d){ d=d||new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+async function purgeDeviceDays(deviceId, keepDay){
+  try{
+    const { data:days } = await supa.storage.from(BUCKET).list(deviceId, { limit:1000 });
+    if(!days) return;
+    for(const d of days){ if(!d.name || d.name===keepDay) continue;
+      const { data:files } = await supa.storage.from(BUCKET).list(`${deviceId}/${d.name}`, { limit:1000 });
+      if(files && files.length) await supa.storage.from(BUCKET).remove(files.map(x=>`${deviceId}/${d.name}/${x.name}`));
+    }
+  }catch(e){}
+}
 
 const app = express();
 app.use(express.json({ limit: '4mb' }));
@@ -89,6 +110,21 @@ app.post('/api/sync', async (req, res) => {
   }
 });
 
+// ---------- screenshot upload (current-day only on server) ----------
+app.post('/api/screenshot', async (req, res) => {
+  if (!checkIngest(req, res)) return;
+  try {
+    const { deviceId, day, name, dataB64 } = req.body || {};
+    if (!deviceId || !day || !name || !dataB64) return res.status(400).json({ error: 'missing fields' });
+    const buf = Buffer.from(dataB64, 'base64');
+    const key = `${deviceId}/${day}/${name}`;
+    const up = await supa.storage.from(BUCKET).upload(key, buf, { contentType: 'image/jpeg', upsert: true });
+    if (up.error) return res.status(500).json({ error: up.error.message });
+    purgeDeviceDays(deviceId, day); // fire-and-forget delete of previous days
+    res.json({ ok: true });
+  } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+});
+
 // ---------- admin dashboard ----------
 function adminAuth(req, res, next) {
   const hdr = req.get('authorization') || '';
@@ -112,6 +148,23 @@ app.get('/api/data', adminAuth, async (_req, res) => {
       error: devices.error || daily.error || apps.error || visits.error || null
     });
   } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
+});
+
+app.get('/api/shots', adminAuth, async (req, res) => {
+  try {
+    const device = String(req.query.device || ''); if (!device) return res.json({ files: [] });
+    const { data: days } = await supa.storage.from(BUCKET).list(device, { limit: 1000 });
+    const dayNames = (days || []).map(d => d.name).filter(n => /^\d{4}-\d{2}-\d{2}$/.test(n)).sort().reverse();
+    if (!dayNames.length) return res.json({ files: [] });
+    const day = dayNames[0];
+    const { data: files } = await supa.storage.from(BUCKET).list(`${device}/${day}`, { limit: 1000, sortBy: { column: 'name', order: 'desc' } });
+    const out = [];
+    for (const f of (files || []).slice(0, 200)) {
+      const { data: s } = await supa.storage.from(BUCKET).createSignedUrl(`${device}/${day}/${f.name}`, 3600);
+      if (s && s.signedUrl) out.push({ name: f.name, url: s.signedUrl });
+    }
+    res.json({ day, files: out });
+  } catch (e) { res.json({ files: [], error: String(e.message || e) }); }
 });
 
 app.get('/', adminAuth, (_req, res) => res.type('html').send(DASH_HTML));
@@ -141,6 +194,10 @@ button{background:#19b8a6;color:#fff;border:none;border-radius:8px;padding:8px 1
   <div class="card"><h2>Time tracked (recent days)</h2><div id="daily"></div></div>
   <div class="card"><h2>Top applications</h2><div id="apps"></div></div>
   <div class="card"><h2>Recent visited sites</h2><div id="visits"></div></div>
+  <div class="card"><h2>Screenshots (today)</h2>
+    <div style="margin-bottom:10px"><select id="shotDevice"></select> <button onclick="loadShots()">Load screenshots</button> <span id="shotMsg" class="muted"></span></div>
+    <div id="shots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px"></div>
+  </div>
 </main>
 <script>
 function fmt(s){s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+'h '+m+'m':(m?m+'m':s+'s');}
@@ -162,9 +219,20 @@ async function load(){
     ['Activity',x=>x.active_pct+'%'],['Deleted',x=>x.deleted]]);
   document.getElementById('apps').innerHTML=tbl((d.apps||[]).slice(0,40),[
     ['Device',x=>x.device_id],['App',x=>x.app],['Time',x=>fmt(x.seconds)]]);
+  const sd=document.getElementById('shotDevice'); const cur=sd.value;
+  sd.innerHTML=(d.devices||[]).map(x=>'<option value="'+x.id+'">'+(x.label||x.id)+'</option>').join('');
+  if(cur)sd.value=cur;
   document.getElementById('visits').innerHTML=tbl((d.visits||[]).slice(0,200),[
     ['When',x=>new Date(x.ts).toLocaleString()],['Device',x=>x.device_id],
     ['Site',x=>x.domain],['Title',x=>(x.title||'').slice(0,60)],['Browser',x=>x.browser]]);
+}
+async function loadShots(){
+  const dev=document.getElementById('shotDevice').value; const box=document.getElementById('shots'); const m=document.getElementById('shotMsg');
+  if(!dev){m.textContent='No device selected';return;} m.textContent='Loading…'; box.innerHTML='';
+  const r=await fetch('/api/shots?device='+encodeURIComponent(dev)); const d=await r.json();
+  if(d.error){m.textContent='Error: '+d.error;return;}
+  m.textContent=(d.files&&d.files.length)?('Day '+(d.day||'')+' — '+d.files.length+' shots'):'No screenshots yet';
+  box.innerHTML=(d.files||[]).map(f=>'<a href="'+f.url+'" target="_blank"><img src="'+f.url+'" style="width:100%;border:1px solid #e6eaf0;border-radius:8px" title="'+f.name+'"></a>').join('');
 }
 load();
 </script></body></html>`;
