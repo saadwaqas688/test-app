@@ -1,30 +1,36 @@
 <!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>test-app dashboard</title>
+<title>test-app</title>
 <style>
 :root{--bg:#f4f6fa;--panel:#fff;--ink:#1f2733;--muted:#7b8794;--line:#e6eaf0;--teal:#19b8a6;--teal-d:#139b8c;--blue:#3a7bf2;--violet:#7b6cf6;--red:#ef5b6b;--sidebar:#13294b;--sidebar-ink:#aeb9d0;--sidebar-active:#1d3a6b}
 *{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.hidden{display:none!important}
+/* login */
+.login{position:fixed;inset:0;background:linear-gradient(160deg,#13294b,#1d3a6b);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#fff;border-radius:16px;padding:30px;width:min(380px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.login-card h1{font-size:19px;margin:0 0 16px}.login-card .mark{color:var(--teal)}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:10px;font-size:14px}
+.btn{border:1px solid var(--line);border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--ink)}
+.btn:hover{background:#eef1f6}.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal);width:100%;padding:12px;margin-top:16px}.btn.primary:hover{background:var(--teal-d)}
+.btn.small{padding:7px 12px;font-size:12px}.btn.danger{border-color:var(--red);color:var(--red)}
+.err{color:var(--red);font-size:12px;margin-top:8px;min-height:14px}
+/* app */
 .app{display:flex;min-height:100vh}
 .sidebar{width:230px;background:var(--sidebar);color:var(--sidebar-ink);display:flex;flex-direction:column;padding:18px 14px;flex-shrink:0}
-.logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:15px;margin:6px 8px 22px}
-.logo .mark{color:var(--teal);font-size:24px}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:15px;margin:6px 8px 22px}.logo .mark{color:var(--teal);font-size:24px}
 nav{display:flex;flex-direction:column;gap:4px}
-.nav{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;color:var(--sidebar-ink);cursor:pointer;font-weight:500;font-size:13.5px;user-select:none}
+.nav{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;color:var(--sidebar-ink);cursor:pointer;font-weight:500;font-size:13.5px}
 .nav .ico{width:18px;text-align:center}.nav:hover{background:var(--sidebar-active);color:#fff}.nav.active{background:var(--teal);color:#fff}
 .side-foot{margin-top:auto;font-size:11px;color:var(--sidebar-ink);padding:8px}
 .content{flex:1;padding:22px 28px;max-width:1150px}
-.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
 h1{font-size:21px;margin:0}.crumb{margin:3px 0 0;color:var(--muted);font-size:13px}
-.top-actions{display:flex;gap:9px;align-items:center}
-.btn{border:1px solid var(--line);border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--ink)}
-.btn:hover{background:#eef1f6}.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}.btn.primary:hover{background:var(--teal-d)}
-select{background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 10px;font-size:13px}
-.view.hidden{display:none}
+.top-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.view.vhidden{display:none}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:16px}
 .kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;display:flex;align-items:center;gap:13px}
-.kpi-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff}
-.kpi-ico.teal{background:var(--teal)}.kpi-ico.blue{background:var(--blue)}.kpi-ico.violet{background:var(--violet)}.kpi-ico.red{background:var(--red)}.kpi-ico.green{background:#2bb673}
-.kpi-v{font-size:22px;font-weight:700}.kpi-k{font-size:12px;color:var(--muted)}
+.kpi-dot{width:14px;height:14px;border-radius:7px}.kpi-v{font-size:22px;font-weight:700}.kpi-k{font-size:12px;color:var(--muted)}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
 .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.panel-head h2{font-size:15px;margin:0}
 .muted{color:var(--muted)}.small{font-size:12px}
@@ -32,175 +38,221 @@ select{background:#fff;border:1px solid var(--line);color:var(--ink);border-radi
 .bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;min-width:0}
 .bar-track{flex:1;width:64%;max-width:38px;display:flex;align-items:flex-end;background:#eef1f6;border-radius:6px}
 .bar-fill{width:100%;background:linear-gradient(180deg,var(--teal),var(--teal-d));border-radius:6px 6px 0 0;min-height:2px}
-.blue-fill{background:linear-gradient(180deg,#6aa0ff,var(--blue))}.bad-fill{background:linear-gradient(180deg,#ff8593,var(--red))}
-.bar-val{font-size:10px;color:var(--muted);height:14px;white-space:nowrap}.bar-label{font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;transform:rotate(-32deg);height:16px}
+.blue-fill{background:linear-gradient(180deg,#6aa0ff,var(--blue))}
+.bar-val{font-size:10px;color:var(--muted);height:14px}.bar-label{font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;transform:rotate(-32deg);height:16px}
 .table{font-size:13px}.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 4px;border-bottom:1px solid var(--line)}.trow:last-child{border-bottom:none}
-.trow .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.trow .sub{color:var(--muted);font-size:11px}.trow .right{color:var(--teal-d);font-weight:700;white-space:nowrap;margin-left:12px}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#9aa3c4;margin-right:6px}.dot.on{background:#27c08a;box-shadow:0 0 8px #27c08a}
-.pill{display:inline-block;background:#eef1f6;color:var(--muted);border-radius:20px;padding:1px 8px;font-size:10px;margin-left:6px}
-#shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-#shots img{width:100%;border:1px solid var(--line);border-radius:8px;display:block}
-.store-bar{height:16px;background:#eef1f6;border-radius:8px;overflow:hidden;margin:4px 0 8px}
-.store-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-d));width:0%}
-.store-fill.warn{background:linear-gradient(90deg,#ffb072,var(--red))}
+.trow .name{font-weight:600}.trow .sub{color:var(--muted);font-size:11px}.trow .right{color:var(--teal-d);font-weight:700;margin-left:12px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#9aa3c4;margin-right:6px}.dot.on{background:#27c08a}
+.store-bar{height:16px;background:#eef1f6;border-radius:8px;overflow:hidden;margin:4px 0 8px}.store-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-d));width:0%}.store-fill.warn{background:linear-gradient(90deg,#ffb072,var(--red))}
+#shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}#shots img{width:100%;border:1px solid var(--line);border-radius:8px;display:block}
+.formrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.formrow>div{flex:1;min-width:150px}
+.msg{font-size:12px;margin-left:8px}
 </style></head>
 <body>
-<div class="app">
+
+<div id="login" class="login">
+  <div class="login-card">
+    <h1><span class="mark">⦿</span> test-app</h1>
+    <label>Username</label><input id="luser" autocomplete="username">
+    <label>Password</label><input id="lpass" type="password" autocomplete="current-password">
+    <div class="err" id="lerr"></div>
+    <button class="btn primary" id="lbtn">Sign in</button>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
   <aside class="sidebar">
     <div class="logo"><span class="mark">⦿</span> test-app</div>
-    <nav>
+    <nav id="nav">
       <a class="nav active" data-view="dashboard"><span class="ico">▦</span>Dashboard</a>
       <a class="nav" data-view="reports"><span class="ico">▤</span>Reports</a>
       <a class="nav" data-view="websites"><span class="ico">◉</span>Web &amp; Sites</a>
       <a class="nav" data-view="screens"><span class="ico">▢</span>Screenshots</a>
+      <a class="nav" data-view="storage"><span class="ico">☁</span>Storage</a>
+      <a class="nav admin-only" data-view="users"><span class="ico">&#128100;</span>Users</a>
     </nav>
-    <div class="side-foot" id="foot">monitoring dashboard</div>
+    <div class="side-foot" id="foot"></div>
   </aside>
   <main class="content">
     <header class="topbar">
-      <div><h1 id="pageTitle">Dashboard</h1><p class="crumb" id="pageSub">All devices</p></div>
+      <div><h1 id="pageTitle">Dashboard</h1><p class="crumb" id="pageSub"></p></div>
       <div class="top-actions">
-        <select id="deviceFilter"><option value="all">All devices</option></select>
-        <button class="btn primary" onclick="load()">Refresh</button>
+        <select id="userSel" class="admin-only" style="max-width:200px"></select>
+        <button class="btn" onclick="loadAll()">Refresh</button>
+        <button class="btn" onclick="logout()">Log out</button>
       </div>
     </header>
 
     <section class="view" id="view-dashboard">
       <div class="kpis">
-        <div class="kpi"><div class="kpi-ico green">●</div><div><div class="kpi-v" id="kDevices">0</div><div class="kpi-k">Running now</div></div></div>
-        <div class="kpi"><div class="kpi-ico teal">⏱</div><div><div class="kpi-v" id="kToday">0m</div><div class="kpi-k">Tracked today</div></div></div>
-        <div class="kpi"><div class="kpi-ico violet">◉</div><div><div class="kpi-v" id="kSites">0</div><div class="kpi-k">Sites today</div></div></div>
-        <div class="kpi"><div class="kpi-ico red">⚠</div><div><div class="kpi-v" id="kDeleted">0</div><div class="kpi-k">Deleted (range)</div></div></div>
+        <div class="kpi"><div class="kpi-dot" style="background:#2bb673"></div><div><div class="kpi-v" id="kDevices">0</div><div class="kpi-k">Running now</div></div></div>
+        <div class="kpi"><div class="kpi-dot" style="background:var(--teal)"></div><div><div class="kpi-v" id="kToday">0m</div><div class="kpi-k">Tracked today</div></div></div>
+        <div class="kpi"><div class="kpi-dot" style="background:var(--violet)"></div><div><div class="kpi-v" id="kSites">0</div><div class="kpi-k">Sites today</div></div></div>
+        <div class="kpi"><div class="kpi-dot" style="background:var(--red)"></div><div><div class="kpi-v" id="kDeleted">0</div><div class="kpi-k">Deleted (15d)</div></div></div>
       </div>
-      <div class="panel"><div class="panel-head"><h2>Server storage (screenshots)</h2><span class="muted small" id="storeTxt"></span></div>
-        <div class="store-bar"><div class="store-fill" id="storeFill"></div></div>
-        <div class="muted small" id="storeDetail">Loading…</div></div>
       <div class="panel"><div class="panel-head"><h2>Devices</h2></div><div id="devices" class="table"></div></div>
       <div class="panel"><div class="panel-head"><h2>Time tracked — daily</h2></div><div id="dailyChart"></div></div>
     </section>
 
-    <section class="view hidden" id="view-reports">
+    <section class="view vhidden" id="view-reports">
       <div class="panel"><div class="panel-head"><h2>Time tracked — weekly</h2><span class="muted" id="weekTot"></span></div><div id="weeklyChart"></div></div>
       <div class="panel"><div class="panel-head"><h2>Daily detail</h2></div><div id="dailyTable" class="table"></div></div>
       <div class="panel"><div class="panel-head"><h2>Time by application</h2></div><div id="appsChart"></div><div id="appsTable" class="table"></div></div>
     </section>
 
-    <section class="view hidden" id="view-websites">
-      <div class="panel"><div class="panel-head"><h2>Visited websites</h2><span class="muted small">recorded while tracking was on</span></div>
-        <div id="sitesChart"></div><div id="sitesTable" class="table"></div></div>
+    <section class="view vhidden" id="view-websites">
+      <div class="panel"><div class="panel-head"><h2>Visited websites</h2></div><div id="sitesChart"></div><div id="sitesTable" class="table"></div></div>
     </section>
 
-    <section class="view hidden" id="view-screens">
-      <div class="panel"><div class="panel-head"><h2>Screenshots (today)</h2><button class="btn" onclick="loadShots()">Load</button> <button class="btn" style="border-color:var(--red);color:var(--red)" onclick="deleteShots()">Delete screenshots</button></div>
-        <p class="muted small" id="shotMsg">Pick a device in the top-right filter, then Load.</p><div id="shots"></div></div>
+    <section class="view vhidden" id="view-screens">
+      <div class="panel"><div class="panel-head"><h2>Screenshots (today)</h2><button class="btn small danger" onclick="deleteShots()">Delete screenshots</button></div>
+        <div style="margin-bottom:10px"><select id="shotDevice" style="max-width:280px"></select> <button class="btn small" onclick="loadShots()">Load</button> <span class="msg muted" id="shotMsg"></span></div>
+        <div id="shots"></div></div>
+    </section>
+
+    <section class="view vhidden" id="view-storage">
+      <div class="panel"><div class="panel-head"><h2>Server storage (screenshots)</h2><span class="muted small" id="storeTxt"></span></div>
+        <div class="store-bar"><div class="store-fill" id="storeFill"></div></div><div class="muted small" id="storeDetail"></div></div>
+    </section>
+
+    <section class="view vhidden" id="view-users">
+      <div class="panel"><div class="panel-head"><h2>Add user</h2></div>
+        <div class="formrow">
+          <div><label>Username</label><input id="nuUser"></div>
+          <div><label>Password</label><input id="nuPass" type="text"></div>
+          <div style="flex:0 0 auto"><label>Role</label><select id="nuRole"><option value="user">user</option><option value="admin">admin</option></select></div>
+          <button class="btn primary" style="width:auto;margin:0" onclick="addUser()">Add</button>
+        </div>
+        <div class="err" id="nuMsg"></div>
+      </div>
+      <div class="panel"><div class="panel-head"><h2>Users</h2></div><div id="usersTable" class="table"></div></div>
+      <div class="panel"><div class="panel-head"><h2>Reset a password</h2></div>
+        <div class="formrow">
+          <div><label>User</label><select id="rsUser"></select></div>
+          <div><label>New password</label><input id="rsPass" type="text"></div>
+          <button class="btn primary" style="width:auto;margin:0" onclick="resetUser()">Reset</button>
+        </div>
+        <div class="err" id="rsMsg"></div>
+      </div>
+      <div class="panel"><div class="panel-head"><h2>Change my password</h2></div>
+        <div class="formrow"><div><label>New password</label><input id="myPass" type="text"></div>
+          <button class="btn primary" style="width:auto;margin:0" onclick="changeMine()">Update</button></div>
+        <div class="err" id="myMsg"></div>
+      </div>
     </section>
   </main>
 </div>
-<script>
-const PAGES={dashboard:['Dashboard','Overview'],reports:['Reports','Time over time'],websites:['Web & Sites','Sites visited'],screens:['Screenshots',"Today's captures"]};
-let DATA={devices:[],daily:[],apps:[],visits:[]};
-function fmt(s){s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+'h '+m+'m':(m?m+'m':s+'s');}
-function pad(n){return String(n).padStart(2,'0');}
-function dk(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-function esc(t){return String(t==null?'':t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
-function dev(){return document.getElementById('deviceFilter').value;}
-function selDevices(){const d=dev();return d==='all'?DATA.devices.map(x=>x.id):[d];}
 
+<script>
+let token=localStorage.getItem('tok')||'', role=localStorage.getItem('role')||'', username=localStorage.getItem('usr')||'';
+let viewUser='', DATA={devices:[],daily:[],apps:[],visits:[]}, storage=null, users=[];
+const $=id=>document.getElementById(id);
+function fmt(s){s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+'h '+m+'m':(m?m+'m':s+'s');}
+function human(b){b=b||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';if(b<1073741824)return (b/1048576).toFixed(1)+' MB';return (b/1073741824).toFixed(2)+' GB';}
+function pad(n){return String(n).padStart(2,'0');}function dk(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function esc(t){return String(t==null?'':t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+async function api(path,opts){
+  const r=await fetch(path,{...(opts||{}),headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json',...(opts&&opts.headers||{})}});
+  if(r.status===401){ logout(); throw new Error('Session expired'); }
+  return r;
+}
+function scoped(path){ if(role==='admin'&&viewUser){ return path+(path.includes('?')?'&':'?')+'user='+encodeURIComponent(viewUser); } return path; }
+
+$('lbtn').onclick=login;
+$('lpass').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+async function login(){
+  $('lerr').textContent='';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('luser').value.trim(),password:$('lpass').value})});
+    const d=await r.json();
+    if(!r.ok){ $('lerr').textContent=d.error||'Login failed'; return; }
+    token=d.token; role=d.role; username=d.username;
+    localStorage.setItem('tok',token);localStorage.setItem('role',role);localStorage.setItem('usr',username);
+    startApp();
+  }catch(e){ $('lerr').textContent=e.message; }
+}
+function logout(){ token='';localStorage.clear(); $('app').classList.add('hidden'); $('login').classList.remove('hidden'); $('lpass').value=''; }
+
+function startApp(){
+  $('login').classList.add('hidden'); $('app').classList.remove('hidden');
+  document.querySelectorAll('.admin-only').forEach(e=>e.style.display = role==='admin'?'':'none');
+  $('foot').textContent='Signed in as '+username+' ('+role+')';
+  loadAll();
+}
 document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>{
   document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');
-  const v=n.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));
-  document.getElementById('view-'+v).classList.remove('hidden');
-  document.getElementById('pageTitle').textContent=PAGES[v][0];document.getElementById('pageSub').textContent=PAGES[v][1];
+  const v=n.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.add('vhidden'));$('view-'+v).classList.remove('vhidden');
+  $('pageTitle').textContent=n.textContent.trim();
+  if(v==='users') loadUsers();
   render();
 });
-document.getElementById('deviceFilter').onchange=render;
+$('userSel').onchange=()=>{ viewUser=$('userSel').value; $('pageSub').textContent='Viewing: '+(viewUser||username); loadAll(); };
 
-function bars(elId,data,opts){opts=opts||{};const el=document.getElementById(elId);if(!el)return;
-  const max=Math.max(1,...data.map(d=>d.value));let h='<div class="bars">';
-  for(const d of data){const pct=Math.round(d.value/max*100);const v=d.value>0?(opts.fmt?opts.fmt(d.value):d.value):'';
-    h+='<div class="bar" title="'+d.label+': '+v+'"><div class="bar-val">'+v+'</div><div class="bar-track"><div class="'+(opts.cls||'bar-fill')+'" style="height:'+(d.value>0?Math.max(pct,3):0)+'%"></div></div><div class="bar-label">'+d.label+'</div></div>';}
-  el.innerHTML=h+'</div>';}
-
-function dailyAgg(){
-  const ids=selDevices();const m={};
-  for(const r of DATA.daily){if(!ids.includes(r.device_id))continue;
-    if(!m[r.day])m[r.day]={day:r.day,seconds:0,deleted:0,actSum:0,actN:0};
-    m[r.day].seconds+=r.seconds||0;m[r.day].deleted+=r.deleted||0;m[r.day].actSum+=r.active_pct||0;m[r.day].actN++;}
-  return Object.values(m).sort((a,b)=>a.day<b.day?-1:1).slice(-15);
+async function loadAll(){
+  try{
+    if(role==='admin'){ await loadUsers(); if(!viewUser && users.length){ const first=users.find(u=>u.role!=='admin')||users[0]; viewUser=first.username; $('userSel').value=viewUser; } }
+    $('pageSub').textContent = role==='admin' ? ('Viewing: '+(viewUser||username)) : '';
+    const r=await api(scoped('/api/data')); const d=await r.json();
+    DATA={devices:d.devices||[],daily:d.daily||[],apps:d.apps||[],visits:d.visits||[]};
+    render(); loadStorage();
+  }catch(e){}
 }
-function today(){const d=dailyAgg();return d.length?d[d.length-1].day:dk(new Date());}
+async function loadStorage(){ try{const r=await api(scoped('/api/storage'));storage=await r.json();renderStorage();}catch(e){} }
+
+function dailyAgg(){const m={};for(const r of DATA.daily){if(!m[r.day])m[r.day]={day:r.day,seconds:0,deleted:0,as:0,an:0};m[r.day].seconds+=r.seconds||0;m[r.day].deleted+=r.deleted||0;m[r.day].as+=r.active_pct||0;m[r.day].an++;}return Object.values(m).sort((a,b)=>a.day<b.day?-1:1).slice(-15);}
+function bars(elId,data,opts){opts=opts||{};const el=$(elId);if(!el)return;const max=Math.max(1,...data.map(d=>d.value));let h='<div class="bars">';for(const d of data){const pct=Math.round(d.value/max*100);const v=d.value>0?(opts.fmt?opts.fmt(d.value):d.value):'';h+='<div class="bar" title="'+d.label+': '+v+'"><div class="bar-val">'+v+'</div><div class="bar-track"><div class="'+(opts.cls||'bar-fill')+'" style="height:'+(d.value>0?Math.max(pct,3):0)+'%"></div></div><div class="bar-label">'+d.label+'</div></div>';}el.innerHTML=h+'</div>';}
 
 function render(){
-  const days=dailyAgg();const tk=today();
-  // KPIs
-  const ids=selDevices();
-  const running=DATA.devices.filter(x=>(dev()==='all'||x.id===dev())&&x.running).length;
-  document.getElementById('kDevices').textContent=running+' / '+(dev()==='all'?DATA.devices.length:1);
-  const todayRow=days.find(d=>d.day===tk);
-  document.getElementById('kToday').textContent=fmt(todayRow?todayRow.seconds:0);
-  const sitesToday=new Set(DATA.visits.filter(v=>ids.includes(v.device_id)&&String(v.ts).slice(0,10)===tk).map(v=>v.domain));
-  document.getElementById('kSites').textContent=sitesToday.size;
-  document.getElementById('kDeleted').textContent=days.reduce((s,d)=>s+d.deleted,0);
-  // devices table
-  document.getElementById('devices').innerHTML=(DATA.devices||[]).map(x=>
-    '<div class="trow"><div><div class="name"><span class="dot '+(x.running?'on':'')+'"></span>'+esc(x.label||x.id)+'</div><div class="sub">last seen '+(x.last_seen?new Date(x.last_seen).toLocaleString():'—')+'</div></div><div class="right">'+fmt(x.today_seconds)+'</div></div>'
-  ).join('')||'<div class="muted">No devices yet.</div>';
-  // daily chart
+  const days=dailyAgg();const tk=days.length?days[days.length-1].day:dk(new Date());
+  const ids=DATA.devices.map(x=>x.id);
+  $('kDevices').textContent=DATA.devices.filter(x=>x.running).length+' / '+DATA.devices.length;
+  const tr=days.find(d=>d.day===tk);$('kToday').textContent=fmt(tr?tr.seconds:0);
+  $('kSites').textContent=new Set(DATA.visits.filter(v=>String(v.ts).slice(0,10)===tk).map(v=>v.domain)).size;
+  $('kDeleted').textContent=days.reduce((s,d)=>s+d.deleted,0);
+  $('devices').innerHTML=DATA.devices.map(x=>'<div class="trow"><div><div class="name"><span class="dot '+(x.running?'on':'')+'"></span>'+esc(x.label||x.id)+'</div><div class="sub">last seen '+(x.last_seen?new Date(x.last_seen).toLocaleString():'—')+'</div></div><div class="right">'+fmt(x.today_seconds)+'</div></div>').join('')||'<div class="muted">No devices yet.</div>';
   bars('dailyChart',days.map(d=>({label:d.day.slice(5),value:d.seconds})),{fmt:fmt});
-  // weekly
-  const wk={};for(const d of days){const dt=new Date(d.day+'T00:00:00');const wd=(dt.getDay()+6)%7;const mon=new Date(dt);mon.setDate(dt.getDate()-wd);const k=dk(mon);if(!wk[k])wk[k]={label:'Wk '+(mon.getMonth()+1)+'/'+mon.getDate(),seconds:0,deleted:0,t:mon.getTime()};wk[k].seconds+=d.seconds;wk[k].deleted+=d.deleted;}
-  const weeks=Object.values(wk).sort((a,b)=>a.t-b.t);
-  bars('weeklyChart',weeks.map(w=>({label:w.label,value:w.seconds})),{fmt:fmt});
-  document.getElementById('weekTot').textContent=weeks.length+' week(s) · '+fmt(days.reduce((s,d)=>s+d.seconds,0));
-  document.getElementById('dailyTable').innerHTML=days.slice().reverse().map(d=>'<div class="trow"><div><div class="name">'+d.day+'</div><div class="sub">'+d.deleted+' deleted · '+(d.actN?Math.round(d.actSum/d.actN):0)+'% activity</div></div><div class="right">'+fmt(d.seconds)+'</div></div>').join('')||'<div class="muted">No data.</div>';
-  // apps
-  const am={};for(const a of DATA.apps){if(!ids.includes(a.device_id))continue;am[a.app]=(am[a.app]||0)+(a.seconds||0);}
-  const apps=Object.entries(am).map(([app,seconds])=>({app,seconds})).sort((a,b)=>b.seconds-a.seconds).slice(0,12);
+  const wk={};for(const d of days){const dt=new Date(d.day+'T00:00:00');const wd=(dt.getDay()+6)%7;const mon=new Date(dt);mon.setDate(dt.getDate()-wd);const k=dk(mon);if(!wk[k])wk[k]={label:'Wk '+(mon.getMonth()+1)+'/'+mon.getDate(),seconds:0,t:mon.getTime()};wk[k].seconds+=d.seconds;}
+  const weeks=Object.values(wk).sort((a,b)=>a.t-b.t);bars('weeklyChart',weeks.map(w=>({label:w.label,value:w.seconds})),{fmt:fmt});
+  $('weekTot').textContent=weeks.length+' week(s) · '+fmt(days.reduce((s,d)=>s+d.seconds,0));
+  $('dailyTable').innerHTML=days.slice().reverse().map(d=>'<div class="trow"><div><div class="name">'+d.day+'</div><div class="sub">'+d.deleted+' deleted · '+(d.an?Math.round(d.as/d.an):0)+'% activity</div></div><div class="right">'+fmt(d.seconds)+'</div></div>').join('')||'<div class="muted">No data.</div>';
+  const am={};for(const a of DATA.apps)am[a.app]=(am[a.app]||0)+(a.seconds||0);const apps=Object.entries(am).map(([app,seconds])=>({app,seconds})).sort((a,b)=>b.seconds-a.seconds).slice(0,12);
   bars('appsChart',apps.slice(0,10).map(a=>({label:(a.app||'?').slice(0,11),value:a.seconds})),{fmt:fmt});
-  document.getElementById('appsTable').innerHTML=apps.map(a=>'<div class="trow"><div class="name">'+esc(a.app||'Unknown')+'</div><div class="right">'+fmt(a.seconds)+'</div></div>').join('')||'<div class="muted">No app data.</div>';
-  // sites
-  const sm={};for(const v of DATA.visits){if(!ids.includes(v.device_id))continue;if(!sm[v.domain])sm[v.domain]={domain:v.domain,visits:0,last:0,title:v.title};const ms=new Date(v.ts).getTime();sm[v.domain].visits++;if(ms>sm[v.domain].last){sm[v.domain].last=ms;sm[v.domain].title=v.title;}}
+  $('appsTable').innerHTML=apps.map(a=>'<div class="trow"><div class="name">'+esc(a.app||'Unknown')+'</div><div class="right">'+fmt(a.seconds)+'</div></div>').join('')||'<div class="muted">No app data.</div>';
+  const sm={};for(const v of DATA.visits){if(!sm[v.domain])sm[v.domain]={domain:v.domain,visits:0,last:0};const t=new Date(v.ts).getTime();sm[v.domain].visits++;if(t>sm[v.domain].last)sm[v.domain].last=t;}
   const sites=Object.values(sm).sort((a,b)=>b.visits-a.visits);
   bars('sitesChart',sites.slice(0,10).map(s=>({label:s.domain.length>12?s.domain.slice(0,11)+'…':s.domain,value:s.visits})),{cls:'bar-fill blue-fill'});
-  document.getElementById('sitesTable').innerHTML=sites.slice(0,200).map(s=>'<div class="trow"><div><div class="name">'+esc(s.domain)+'</div><div class="sub">'+esc((s.title||'').slice(0,60))+' · last '+(s.last?new Date(s.last).toLocaleString():'')+'</div></div><div class="right">'+s.visits+'</div></div>').join('')||'<div class="muted">No visits.</div>';
+  $('sitesTable').innerHTML=sites.slice(0,200).map(s=>'<div class="trow"><div><div class="name">'+esc(s.domain)+'</div><div class="sub">last '+(s.last?new Date(s.last).toLocaleString():'')+'</div></div><div class="right">'+s.visits+'</div></div>').join('')||'<div class="muted">No visits.</div>';
+  const sd=$('shotDevice');const cur=sd.value;sd.innerHTML=DATA.devices.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.id)+'</option>').join('');if(cur)sd.value=cur;
 }
+function renderStorage(){ if(!storage)return;const pct=storage.quota?Math.min(100,Math.round(storage.bytes/storage.quota*100)):0;
+  const f=$('storeFill');f.style.width=pct+'%';f.classList.toggle('warn',pct>=80);$('storeTxt').textContent=pct+'% used';
+  $('storeDetail').textContent='Occupied '+human(storage.bytes)+' • Remaining '+human(storage.remaining)+' • Total '+human(storage.quota)+' • '+(storage.files||0)+' files';
+}
+async function loadShots(){const dev=$('shotDevice').value;if(!dev){$('shotMsg').textContent='No device';return;}$('shotMsg').textContent='Loading…';$('shots').innerHTML='';
+  const r=await api(scoped('/api/shots?device='+encodeURIComponent(dev)));const j=await r.json();
+  $('shotMsg').textContent=(j.files&&j.files.length)?('Day '+(j.day||'')+' — '+j.files.length+' shots'):'No screenshots';
+  $('shots').innerHTML=(j.files||[]).map(f=>'<a href="'+f.url+'" target="_blank"><img src="'+f.url+'"></a>').join('');}
+async function deleteShots(){const dev=$('shotDevice').value;if(!dev)return;if(!confirm('Delete all screenshots for this device?'))return;
+  const r=await api(scoped('/api/delete-shots?device='+encodeURIComponent(dev)),{method:'POST'});const j=await r.json();$('shotMsg').textContent='Deleted '+(j.removed||0);$('shots').innerHTML='';loadStorage();}
 
-async function load(){
-  document.getElementById('foot').textContent='Loading…';
-  try{const r=await fetch('/api/data');const d=await r.json();
-    DATA={devices:d.devices||[],daily:d.daily||[],apps:d.apps||[],visits:d.visits||[]};
-    const sel=document.getElementById('deviceFilter');const cur=sel.value;
-    sel.innerHTML='<option value="all">All devices</option>'+DATA.devices.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.id)+'</option>').join('');
-    if(cur)sel.value=cur;
-    document.getElementById('foot').textContent='Updated '+new Date().toLocaleTimeString();
-    render(); loadStorage();
-  }catch(e){document.getElementById('foot').textContent='Error: '+e.message;}
-}
-function human(b){b=b||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';if(b<1073741824)return (b/1048576).toFixed(1)+' MB';return (b/1073741824).toFixed(2)+' GB';}
-async function loadStorage(){
-  try{const r=await fetch('/api/storage');const d=await r.json();
-    const pct=d.quota?Math.min(100,Math.round(d.bytes/d.quota*100)):0;
-    const fill=document.getElementById('storeFill');fill.style.width=pct+'%';fill.classList.toggle('warn',pct>=80);
-    document.getElementById('storeTxt').textContent=pct+'% used';
-    document.getElementById('storeDetail').textContent='Occupied '+human(d.bytes)+' • Remaining '+human(d.remaining)+' • Total '+human(d.quota)+' • '+(d.files||0)+' files';
-  }catch(e){document.getElementById('storeDetail').textContent='Storage info unavailable';}
-}
-async function deleteShots(){
-  const d=dev();if(d==='all'){alert('Choose a specific device in the top-right filter first.');return;}
-  if(!confirm('Delete ALL screenshots for this device from the server?'))return;
-  const m=document.getElementById('shotMsg');m.textContent='Deleting…';
-  const r=await fetch('/api/delete-shots?device='+encodeURIComponent(d),{method:'POST'});const j=await r.json();
-  if(j.error){m.textContent='Error: '+j.error;return;}
-  m.textContent='Deleted '+(j.removed||0)+' screenshots.';document.getElementById('shots').innerHTML='';loadStorage();
-}
-async function loadShots(){
-  const d=dev();const box=document.getElementById('shots');const m=document.getElementById('shotMsg');
-  if(d==='all'){m.textContent='Choose a specific device in the top-right filter, then Load.';box.innerHTML='';return;}
-  m.textContent='Loading…';box.innerHTML='';
-  const r=await fetch('/api/shots?device='+encodeURIComponent(d));const j=await r.json();
-  if(j.error){m.textContent='Error: '+j.error;return;}
-  m.textContent=(j.files&&j.files.length)?('Day '+(j.day||'')+' — '+j.files.length+' screenshots'):'No screenshots yet.';
-  box.innerHTML=(j.files||[]).map(f=>'<a href="'+f.url+'" target="_blank"><img src="'+f.url+'" title="'+esc(f.name)+'"></a>').join('');
-}
-load();
+// ----- admin users -----
+async function loadUsers(){ if(role!=='admin')return; try{const r=await api('/api/users');const d=await r.json();users=d.users||[];
+  $('userSel').innerHTML=users.map(u=>'<option value="'+esc(u.username)+'">'+esc(u.username)+(u.role==='admin'?' (admin)':'')+'</option>').join('');
+  if(viewUser)$('userSel').value=viewUser;
+  $('rsUser').innerHTML=users.map(u=>'<option value="'+esc(u.username)+'">'+esc(u.username)+'</option>').join('');
+  $('usersTable').innerHTML=users.map(u=>'<div class="trow"><div><div class="name">'+esc(u.username)+'</div><div class="sub">'+u.role+' · since '+(u.created_at?new Date(u.created_at).toLocaleDateString():'')+'</div></div></div>').join('')||'<div class="muted">No users.</div>';
+}catch(e){} }
+async function addUser(){const m=$('nuMsg');m.style.color='var(--red)';
+  const r=await api('/api/users',{method:'POST',body:JSON.stringify({username:$('nuUser').value.trim(),password:$('nuPass').value,role:$('nuRole').value})});
+  const d=await r.json();if(!r.ok){m.textContent=d.error||'Failed';return;}m.style.color='var(--teal-d)';m.textContent='User added ✓';$('nuUser').value='';$('nuPass').value='';loadUsers();}
+async function resetUser(){const m=$('rsMsg');m.style.color='var(--red)';
+  const r=await api('/api/users/reset',{method:'POST',body:JSON.stringify({username:$('rsUser').value,password:$('rsPass').value})});
+  const d=await r.json();if(!r.ok){m.textContent=d.error||'Failed';return;}m.style.color='var(--teal-d)';m.textContent='Password reset ✓';$('rsPass').value='';}
+async function changeMine(){const m=$('myMsg');m.style.color='var(--red)';
+  const r=await api('/api/me/password',{method:'POST',body:JSON.stringify({password:$('myPass').value})});
+  const d=await r.json();if(!r.ok){m.textContent=d.error||'Failed';return;}m.style.color='var(--teal-d)';m.textContent='Your password updated ✓';$('myPass').value='';}
+
+// boot
+if(token){ startApp(); } else { $('login').classList.remove('hidden'); }
 </script></body></html>
