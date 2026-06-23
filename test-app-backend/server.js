@@ -73,12 +73,16 @@ app.post('/api/sync', async (req, res) => {
       today_seconds: Math.round((b.status && b.status.todaySeconds) || 0)
     }, { onConflict: 'id' });
 
-    // daily stats
+    // daily stats — never let trimmed/restarted clients lower a day's total (use max)
     if (Array.isArray(b.days) && b.days.length) {
+      const dayKeys = b.days.map(d => d.date);
+      const { data: existing } = await supa.from('daily_stats')
+        .select('day,seconds,deleted').eq('device_id', deviceId).in('day', dayKeys);
+      const ex = {}; (existing || []).forEach(r => ex[r.day] = r);
       const rows = b.days.map(d => ({
         device_id: deviceId, day: d.date,
-        seconds: Math.round(d.seconds || 0),
-        deleted: Math.round(d.deleted || 0),
+        seconds: Math.max(Math.round(d.seconds || 0), (ex[d.date] && ex[d.date].seconds) || 0),
+        deleted: Math.max(Math.round(d.deleted || 0), (ex[d.date] && ex[d.date].deleted) || 0),
         active_pct: Math.round(d.activePct || 0)
       }));
       await supa.from('daily_stats').upsert(rows, { onConflict: 'device_id,day' });
@@ -167,6 +171,39 @@ app.get('/api/shots', adminAuth, async (req, res) => {
     }
     res.json({ day, files: out });
   } catch (e) { res.json({ files: [], error: String(e.message || e) }); }
+});
+
+app.get('/api/storage', adminAuth, async (_req, res) => {
+  try {
+    let bytes = 0, files = 0;
+    const { data: devs } = await supa.storage.from(BUCKET).list('', { limit: 1000 });
+    for (const dv of (devs || [])) {
+      if (!dv.name) continue;
+      const { data: days } = await supa.storage.from(BUCKET).list(dv.name, { limit: 1000 });
+      for (const dy of (days || [])) {
+        if (!dy.name) continue;
+        const { data: fl } = await supa.storage.from(BUCKET).list(`${dv.name}/${dy.name}`, { limit: 1000 });
+        for (const f of (fl || [])) { files++; bytes += (f.metadata && f.metadata.size) || 0; }
+      }
+    }
+    const quota = (parseInt(process.env.STORAGE_QUOTA_MB, 10) || 1024) * 1024 * 1024;
+    res.json({ bytes, files, quota, remaining: Math.max(0, quota - bytes) });
+  } catch (e) { res.json({ bytes: 0, files: 0, quota: 0, remaining: 0, error: String(e.message || e) }); }
+});
+
+app.post('/api/delete-shots', adminAuth, async (req, res) => {
+  try {
+    const device = String((req.query && req.query.device) || (req.body && req.body.device) || '');
+    if (!device) return res.status(400).json({ error: 'device required' });
+    let removed = 0;
+    const { data: days } = await supa.storage.from(BUCKET).list(device, { limit: 1000 });
+    for (const dy of (days || [])) {
+      if (!dy.name) continue;
+      const { data: fl } = await supa.storage.from(BUCKET).list(`${device}/${dy.name}`, { limit: 1000 });
+      if (fl && fl.length) { await supa.storage.from(BUCKET).remove(fl.map(f => `${device}/${dy.name}/${f.name}`)); removed += fl.length; }
+    }
+    res.json({ ok: true, removed });
+  } catch (e) { res.status(500).json({ error: String(e.message || e) }); }
 });
 
 app.get('/', adminAuth, (_req, res) => res.type('html').send(fs.readFileSync(path.join(__dirname,'dashboard.html'),'utf8')));

@@ -40,6 +40,9 @@ select{background:#fff;border:1px solid var(--line);color:var(--ink);border-radi
 .pill{display:inline-block;background:#eef1f6;color:var(--muted);border-radius:20px;padding:1px 8px;font-size:10px;margin-left:6px}
 #shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 #shots img{width:100%;border:1px solid var(--line);border-radius:8px;display:block}
+.store-bar{height:16px;background:#eef1f6;border-radius:8px;overflow:hidden;margin:4px 0 8px}
+.store-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-d));width:0%}
+.store-fill.warn{background:linear-gradient(90deg,#ffb072,var(--red))}
 </style></head>
 <body>
 <div class="app">
@@ -69,6 +72,9 @@ select{background:#fff;border:1px solid var(--line);color:var(--ink);border-radi
         <div class="kpi"><div class="kpi-ico violet">◉</div><div><div class="kpi-v" id="kSites">0</div><div class="kpi-k">Sites today</div></div></div>
         <div class="kpi"><div class="kpi-ico red">⚠</div><div><div class="kpi-v" id="kDeleted">0</div><div class="kpi-k">Deleted (range)</div></div></div>
       </div>
+      <div class="panel"><div class="panel-head"><h2>Server storage (screenshots)</h2><span class="muted small" id="storeTxt"></span></div>
+        <div class="store-bar"><div class="store-fill" id="storeFill"></div></div>
+        <div class="muted small" id="storeDetail">Loading…</div></div>
       <div class="panel"><div class="panel-head"><h2>Devices</h2></div><div id="devices" class="table"></div></div>
       <div class="panel"><div class="panel-head"><h2>Time tracked — daily</h2></div><div id="dailyChart"></div></div>
     </section>
@@ -85,7 +91,7 @@ select{background:#fff;border:1px solid var(--line);color:var(--ink);border-radi
     </section>
 
     <section class="view hidden" id="view-screens">
-      <div class="panel"><div class="panel-head"><h2>Screenshots (today)</h2><button class="btn" onclick="loadShots()">Load</button></div>
+      <div class="panel"><div class="panel-head"><h2>Screenshots (today)</h2><button class="btn" onclick="loadShots()">Load</button> <button class="btn" style="border-color:var(--red);color:var(--red)" onclick="deleteShots()">Delete screenshots</button></div>
         <p class="muted small" id="shotMsg">Pick a device in the top-right filter, then Load.</p><div id="shots"></div></div>
     </section>
   </main>
@@ -167,8 +173,25 @@ async function load(){
     sel.innerHTML='<option value="all">All devices</option>'+DATA.devices.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.id)+'</option>').join('');
     if(cur)sel.value=cur;
     document.getElementById('foot').textContent='Updated '+new Date().toLocaleTimeString();
-    render();
+    render(); loadStorage();
   }catch(e){document.getElementById('foot').textContent='Error: '+e.message;}
+}
+function human(b){b=b||0;if(b<1024)return b+' B';if(b<1048576)return (b/1024).toFixed(0)+' KB';if(b<1073741824)return (b/1048576).toFixed(1)+' MB';return (b/1073741824).toFixed(2)+' GB';}
+async function loadStorage(){
+  try{const r=await fetch('/api/storage');const d=await r.json();
+    const pct=d.quota?Math.min(100,Math.round(d.bytes/d.quota*100)):0;
+    const fill=document.getElementById('storeFill');fill.style.width=pct+'%';fill.classList.toggle('warn',pct>=80);
+    document.getElementById('storeTxt').textContent=pct+'% used';
+    document.getElementById('storeDetail').textContent='Occupied '+human(d.bytes)+' • Remaining '+human(d.remaining)+' • Total '+human(d.quota)+' • '+(d.files||0)+' files';
+  }catch(e){document.getElementById('storeDetail').textContent='Storage info unavailable';}
+}
+async function deleteShots(){
+  const d=dev();if(d==='all'){alert('Choose a specific device in the top-right filter first.');return;}
+  if(!confirm('Delete ALL screenshots for this device from the server?'))return;
+  const m=document.getElementById('shotMsg');m.textContent='Deleting…';
+  const r=await fetch('/api/delete-shots?device='+encodeURIComponent(d),{method:'POST'});const j=await r.json();
+  if(j.error){m.textContent='Error: '+j.error;return;}
+  m.textContent='Deleted '+(j.removed||0)+' screenshots.';document.getElementById('shots').innerHTML='';loadStorage();
 }
 async function loadShots(){
   const d=dev();const box=document.getElementById('shots');const m=document.getElementById('shotMsg');
