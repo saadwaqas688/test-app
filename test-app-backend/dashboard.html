@@ -1,0 +1,183 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>test-app dashboard</title>
+<style>
+:root{--bg:#f4f6fa;--panel:#fff;--ink:#1f2733;--muted:#7b8794;--line:#e6eaf0;--teal:#19b8a6;--teal-d:#139b8c;--blue:#3a7bf2;--violet:#7b6cf6;--red:#ef5b6b;--sidebar:#13294b;--sidebar-ink:#aeb9d0;--sidebar-active:#1d3a6b}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:230px;background:var(--sidebar);color:var(--sidebar-ink);display:flex;flex-direction:column;padding:18px 14px;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:15px;margin:6px 8px 22px}
+.logo .mark{color:var(--teal);font-size:24px}
+nav{display:flex;flex-direction:column;gap:4px}
+.nav{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;color:var(--sidebar-ink);cursor:pointer;font-weight:500;font-size:13.5px;user-select:none}
+.nav .ico{width:18px;text-align:center}.nav:hover{background:var(--sidebar-active);color:#fff}.nav.active{background:var(--teal);color:#fff}
+.side-foot{margin-top:auto;font-size:11px;color:var(--sidebar-ink);padding:8px}
+.content{flex:1;padding:22px 28px;max-width:1150px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}
+h1{font-size:21px;margin:0}.crumb{margin:3px 0 0;color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:9px;align-items:center}
+.btn{border:1px solid var(--line);border-radius:9px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;background:#fff;color:var(--ink)}
+.btn:hover{background:#eef1f6}.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}.btn.primary:hover{background:var(--teal-d)}
+select{background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 10px;font-size:13px}
+.view.hidden{display:none}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;display:flex;align-items:center;gap:13px}
+.kpi-ico{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:19px;color:#fff}
+.kpi-ico.teal{background:var(--teal)}.kpi-ico.blue{background:var(--blue)}.kpi-ico.violet{background:var(--violet)}.kpi-ico.red{background:var(--red)}.kpi-ico.green{background:#2bb673}
+.kpi-v{font-size:22px;font-weight:700}.kpi-k{font-size:12px;color:var(--muted)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.panel-head h2{font-size:15px;margin:0}
+.muted{color:var(--muted)}.small{font-size:12px}
+.bars{display:flex;align-items:flex-end;gap:7px;height:170px;padding-top:18px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;min-width:0}
+.bar-track{flex:1;width:64%;max-width:38px;display:flex;align-items:flex-end;background:#eef1f6;border-radius:6px}
+.bar-fill{width:100%;background:linear-gradient(180deg,var(--teal),var(--teal-d));border-radius:6px 6px 0 0;min-height:2px}
+.blue-fill{background:linear-gradient(180deg,#6aa0ff,var(--blue))}.bad-fill{background:linear-gradient(180deg,#ff8593,var(--red))}
+.bar-val{font-size:10px;color:var(--muted);height:14px;white-space:nowrap}.bar-label{font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;transform:rotate(-32deg);height:16px}
+.table{font-size:13px}.trow{display:flex;align-items:center;justify-content:space-between;padding:9px 4px;border-bottom:1px solid var(--line)}.trow:last-child{border-bottom:none}
+.trow .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.trow .sub{color:var(--muted);font-size:11px}.trow .right{color:var(--teal-d);font-weight:700;white-space:nowrap;margin-left:12px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#9aa3c4;margin-right:6px}.dot.on{background:#27c08a;box-shadow:0 0 8px #27c08a}
+.pill{display:inline-block;background:#eef1f6;color:var(--muted);border-radius:20px;padding:1px 8px;font-size:10px;margin-left:6px}
+#shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+#shots img{width:100%;border:1px solid var(--line);border-radius:8px;display:block}
+</style></head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><span class="mark">⦿</span> test-app</div>
+    <nav>
+      <a class="nav active" data-view="dashboard"><span class="ico">▦</span>Dashboard</a>
+      <a class="nav" data-view="reports"><span class="ico">▤</span>Reports</a>
+      <a class="nav" data-view="websites"><span class="ico">◉</span>Web &amp; Sites</a>
+      <a class="nav" data-view="screens"><span class="ico">▢</span>Screenshots</a>
+    </nav>
+    <div class="side-foot" id="foot">monitoring dashboard</div>
+  </aside>
+  <main class="content">
+    <header class="topbar">
+      <div><h1 id="pageTitle">Dashboard</h1><p class="crumb" id="pageSub">All devices</p></div>
+      <div class="top-actions">
+        <select id="deviceFilter"><option value="all">All devices</option></select>
+        <button class="btn primary" onclick="load()">Refresh</button>
+      </div>
+    </header>
+
+    <section class="view" id="view-dashboard">
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-ico green">●</div><div><div class="kpi-v" id="kDevices">0</div><div class="kpi-k">Running now</div></div></div>
+        <div class="kpi"><div class="kpi-ico teal">⏱</div><div><div class="kpi-v" id="kToday">0m</div><div class="kpi-k">Tracked today</div></div></div>
+        <div class="kpi"><div class="kpi-ico violet">◉</div><div><div class="kpi-v" id="kSites">0</div><div class="kpi-k">Sites today</div></div></div>
+        <div class="kpi"><div class="kpi-ico red">⚠</div><div><div class="kpi-v" id="kDeleted">0</div><div class="kpi-k">Deleted (range)</div></div></div>
+      </div>
+      <div class="panel"><div class="panel-head"><h2>Devices</h2></div><div id="devices" class="table"></div></div>
+      <div class="panel"><div class="panel-head"><h2>Time tracked — daily</h2></div><div id="dailyChart"></div></div>
+    </section>
+
+    <section class="view hidden" id="view-reports">
+      <div class="panel"><div class="panel-head"><h2>Time tracked — weekly</h2><span class="muted" id="weekTot"></span></div><div id="weeklyChart"></div></div>
+      <div class="panel"><div class="panel-head"><h2>Daily detail</h2></div><div id="dailyTable" class="table"></div></div>
+      <div class="panel"><div class="panel-head"><h2>Time by application</h2></div><div id="appsChart"></div><div id="appsTable" class="table"></div></div>
+    </section>
+
+    <section class="view hidden" id="view-websites">
+      <div class="panel"><div class="panel-head"><h2>Visited websites</h2><span class="muted small">recorded while tracking was on</span></div>
+        <div id="sitesChart"></div><div id="sitesTable" class="table"></div></div>
+    </section>
+
+    <section class="view hidden" id="view-screens">
+      <div class="panel"><div class="panel-head"><h2>Screenshots (today)</h2><button class="btn" onclick="loadShots()">Load</button></div>
+        <p class="muted small" id="shotMsg">Pick a device in the top-right filter, then Load.</p><div id="shots"></div></div>
+    </section>
+  </main>
+</div>
+<script>
+const PAGES={dashboard:['Dashboard','Overview'],reports:['Reports','Time over time'],websites:['Web & Sites','Sites visited'],screens:['Screenshots',"Today's captures"]};
+let DATA={devices:[],daily:[],apps:[],visits:[]};
+function fmt(s){s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h?h+'h '+m+'m':(m?m+'m':s+'s');}
+function pad(n){return String(n).padStart(2,'0');}
+function dk(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function esc(t){return String(t==null?'':t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function dev(){return document.getElementById('deviceFilter').value;}
+function selDevices(){const d=dev();return d==='all'?DATA.devices.map(x=>x.id):[d];}
+
+document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>{
+  document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');
+  const v=n.dataset.view;document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));
+  document.getElementById('view-'+v).classList.remove('hidden');
+  document.getElementById('pageTitle').textContent=PAGES[v][0];document.getElementById('pageSub').textContent=PAGES[v][1];
+  render();
+});
+document.getElementById('deviceFilter').onchange=render;
+
+function bars(elId,data,opts){opts=opts||{};const el=document.getElementById(elId);if(!el)return;
+  const max=Math.max(1,...data.map(d=>d.value));let h='<div class="bars">';
+  for(const d of data){const pct=Math.round(d.value/max*100);const v=d.value>0?(opts.fmt?opts.fmt(d.value):d.value):'';
+    h+='<div class="bar" title="'+d.label+': '+v+'"><div class="bar-val">'+v+'</div><div class="bar-track"><div class="'+(opts.cls||'bar-fill')+'" style="height:'+(d.value>0?Math.max(pct,3):0)+'%"></div></div><div class="bar-label">'+d.label+'</div></div>';}
+  el.innerHTML=h+'</div>';}
+
+function dailyAgg(){
+  const ids=selDevices();const m={};
+  for(const r of DATA.daily){if(!ids.includes(r.device_id))continue;
+    if(!m[r.day])m[r.day]={day:r.day,seconds:0,deleted:0,actSum:0,actN:0};
+    m[r.day].seconds+=r.seconds||0;m[r.day].deleted+=r.deleted||0;m[r.day].actSum+=r.active_pct||0;m[r.day].actN++;}
+  return Object.values(m).sort((a,b)=>a.day<b.day?-1:1).slice(-15);
+}
+function today(){const d=dailyAgg();return d.length?d[d.length-1].day:dk(new Date());}
+
+function render(){
+  const days=dailyAgg();const tk=today();
+  // KPIs
+  const ids=selDevices();
+  const running=DATA.devices.filter(x=>(dev()==='all'||x.id===dev())&&x.running).length;
+  document.getElementById('kDevices').textContent=running+' / '+(dev()==='all'?DATA.devices.length:1);
+  const todayRow=days.find(d=>d.day===tk);
+  document.getElementById('kToday').textContent=fmt(todayRow?todayRow.seconds:0);
+  const sitesToday=new Set(DATA.visits.filter(v=>ids.includes(v.device_id)&&String(v.ts).slice(0,10)===tk).map(v=>v.domain));
+  document.getElementById('kSites').textContent=sitesToday.size;
+  document.getElementById('kDeleted').textContent=days.reduce((s,d)=>s+d.deleted,0);
+  // devices table
+  document.getElementById('devices').innerHTML=(DATA.devices||[]).map(x=>
+    '<div class="trow"><div><div class="name"><span class="dot '+(x.running?'on':'')+'"></span>'+esc(x.label||x.id)+'</div><div class="sub">last seen '+(x.last_seen?new Date(x.last_seen).toLocaleString():'—')+'</div></div><div class="right">'+fmt(x.today_seconds)+'</div></div>'
+  ).join('')||'<div class="muted">No devices yet.</div>';
+  // daily chart
+  bars('dailyChart',days.map(d=>({label:d.day.slice(5),value:d.seconds})),{fmt:fmt});
+  // weekly
+  const wk={};for(const d of days){const dt=new Date(d.day+'T00:00:00');const wd=(dt.getDay()+6)%7;const mon=new Date(dt);mon.setDate(dt.getDate()-wd);const k=dk(mon);if(!wk[k])wk[k]={label:'Wk '+(mon.getMonth()+1)+'/'+mon.getDate(),seconds:0,deleted:0,t:mon.getTime()};wk[k].seconds+=d.seconds;wk[k].deleted+=d.deleted;}
+  const weeks=Object.values(wk).sort((a,b)=>a.t-b.t);
+  bars('weeklyChart',weeks.map(w=>({label:w.label,value:w.seconds})),{fmt:fmt});
+  document.getElementById('weekTot').textContent=weeks.length+' week(s) · '+fmt(days.reduce((s,d)=>s+d.seconds,0));
+  document.getElementById('dailyTable').innerHTML=days.slice().reverse().map(d=>'<div class="trow"><div><div class="name">'+d.day+'</div><div class="sub">'+d.deleted+' deleted · '+(d.actN?Math.round(d.actSum/d.actN):0)+'% activity</div></div><div class="right">'+fmt(d.seconds)+'</div></div>').join('')||'<div class="muted">No data.</div>';
+  // apps
+  const am={};for(const a of DATA.apps){if(!ids.includes(a.device_id))continue;am[a.app]=(am[a.app]||0)+(a.seconds||0);}
+  const apps=Object.entries(am).map(([app,seconds])=>({app,seconds})).sort((a,b)=>b.seconds-a.seconds).slice(0,12);
+  bars('appsChart',apps.slice(0,10).map(a=>({label:(a.app||'?').slice(0,11),value:a.seconds})),{fmt:fmt});
+  document.getElementById('appsTable').innerHTML=apps.map(a=>'<div class="trow"><div class="name">'+esc(a.app||'Unknown')+'</div><div class="right">'+fmt(a.seconds)+'</div></div>').join('')||'<div class="muted">No app data.</div>';
+  // sites
+  const sm={};for(const v of DATA.visits){if(!ids.includes(v.device_id))continue;if(!sm[v.domain])sm[v.domain]={domain:v.domain,visits:0,last:0,title:v.title};const ms=new Date(v.ts).getTime();sm[v.domain].visits++;if(ms>sm[v.domain].last){sm[v.domain].last=ms;sm[v.domain].title=v.title;}}
+  const sites=Object.values(sm).sort((a,b)=>b.visits-a.visits);
+  bars('sitesChart',sites.slice(0,10).map(s=>({label:s.domain.length>12?s.domain.slice(0,11)+'…':s.domain,value:s.visits})),{cls:'bar-fill blue-fill'});
+  document.getElementById('sitesTable').innerHTML=sites.slice(0,200).map(s=>'<div class="trow"><div><div class="name">'+esc(s.domain)+'</div><div class="sub">'+esc((s.title||'').slice(0,60))+' · last '+(s.last?new Date(s.last).toLocaleString():'')+'</div></div><div class="right">'+s.visits+'</div></div>').join('')||'<div class="muted">No visits.</div>';
+}
+
+async function load(){
+  document.getElementById('foot').textContent='Loading…';
+  try{const r=await fetch('/api/data');const d=await r.json();
+    DATA={devices:d.devices||[],daily:d.daily||[],apps:d.apps||[],visits:d.visits||[]};
+    const sel=document.getElementById('deviceFilter');const cur=sel.value;
+    sel.innerHTML='<option value="all">All devices</option>'+DATA.devices.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.label||x.id)+'</option>').join('');
+    if(cur)sel.value=cur;
+    document.getElementById('foot').textContent='Updated '+new Date().toLocaleTimeString();
+    render();
+  }catch(e){document.getElementById('foot').textContent='Error: '+e.message;}
+}
+async function loadShots(){
+  const d=dev();const box=document.getElementById('shots');const m=document.getElementById('shotMsg');
+  if(d==='all'){m.textContent='Choose a specific device in the top-right filter, then Load.';box.innerHTML='';return;}
+  m.textContent='Loading…';box.innerHTML='';
+  const r=await fetch('/api/shots?device='+encodeURIComponent(d));const j=await r.json();
+  if(j.error){m.textContent='Error: '+j.error;return;}
+  m.textContent=(j.files&&j.files.length)?('Day '+(j.day||'')+' — '+j.files.length+' screenshots'):'No screenshots yet.';
+  box.innerHTML=(j.files||[]).map(f=>'<a href="'+f.url+'" target="_blank"><img src="'+f.url+'" title="'+esc(f.name)+'"></a>').join('');
+}
+load();
+</script></body></html>
